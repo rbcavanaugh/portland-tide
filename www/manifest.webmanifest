@@ -1,0 +1,16 @@
+{
+  "name": "Portland Tide",
+  "short_name": "Portland Tide",
+  "description": "A simple PWA to view Portland, ME tide charts",
+  "lang": "en-US",
+  "start_url": "https://rb-cavanaugh.shinyapps.io/portland-tide/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icons/icon-256.png",
+      "sizes": "256x256"
+    }
+  ]
+}

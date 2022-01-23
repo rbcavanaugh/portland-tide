@@ -1,0 +1,15 @@
+
+
+.ios .button-fill, .ios .button-fill-ios {
+     --f7-button-pressed-bg-color: #fff; /*var(--f7-button-fill-pressed-bg-color, var(--f7-theme-color-tint)); */
+}
+
+.aurora .button-fill-aurora, .button-active, .button-fill, .button.tab-link-active, .ios .button-fill-ios, .md .button-fill-md {
+     --f7-button-bg-color: transparent; /*var(--f7-button-fill-bg-color, var(--f7-theme-color)); */
+     --f7-button-text-color: black; /*var(--f7-button-fill-text-color, #fff); */
+    --f7-touch-ripple-color: var(--f7-touch-ripple-white);
+}
+
+.toast {
+  display:none!important;
+}
