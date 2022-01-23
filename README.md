@@ -9,4 +9,4 @@ PWA enabled. On iOS devices, open the link in safari, hit share, then add to hom
 
 The beach lovers are Murphy and Willa. 
 
-![screenshot of app](www/screenshot.jpeg)
+<img src="www/screenshot.jpeg" alt="screenshot of app" height="400">
