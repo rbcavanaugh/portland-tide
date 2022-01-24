@@ -103,61 +103,9 @@ server = function(input, output) {
         selectedData = tideData %>%
             filter(date == data$selectedDate)
         
-       p =  ggplot(data = selectedData, aes(x = time, y = TideHeight)) +
-            geom_line() +
-            stat_peaks(colour = "black") +
-            stat_valleys(colour = "black") +
-            geom_line(data = tideData, alpha = 0.1) +
-            # scale_x_time(
-            #     name = "Time",
-            #     breaks = scales::breaks_width("3 hour"),
-            #     labels = scales::date_format("%I:%M %p"))+
-            scale_x_time(
-                name = "Time",
-                breaks=hours(seq(0,24,3)),
-                labels=c("midnight","3am", "6am", "9am", "noon", "3pm", "6pm", "9am", "midnight")) +
-            scale_y_continuous(name = "Tide Height (m)",
-                               breaks = seq(-1, 4, 0.5),
-                               labels = seq(-1, 4, 0.5)) +
-            theme_minimal(base_size = 14) +
-            theme(axis.text.x=element_text(angle=45,hjust=1))
-       
-       dat = ggplot_build(p)
-       peak_dat = dat$data[[2]][,c("x", "y")] %>% rowwise() %>% mutate(label = ntt2(x))
-       valley_dat = dat$data[[3]][,c("x", "y")] %>% rowwise() %>% mutate(label = ntt2(x))
-       
-       p_text = p + 
-           annotate("text",
-                    x = c(peak_dat$x,valley_dat$x),
-                    y = c(peak_dat$y+.15,valley_dat$y-.15),
-                    label = c(peak_dat$label, valley_dat$label))
-       
-       p_text
+        getPlot(selectedData, tideData)
         
     })
 }
 )
-
-
-
-
-
-
-# tideDataList = unname(split(tideData[,c("time", "TideHeight")], tideData$dateFactor))
-
-# 
-# hc <- highchart() %>% 
-#     hc_plotOptions(series = list(marker = list(enabled = FALSE))) %>% 
-#     hc_xAxis(categories = selectedData$time, type = "datetime") %>% 
-#     hc_add_series(
-#         name = unique(selectedData$Station), 
-#         data = selectedData$TideHeight
-#     ) %>%
-#     hc_add_series_list(
-#         tideDataList
-#     )
-# 
-# hc
-
-#hchart(selectedData, "line", hcaes(x = timeStamp, y = TideHeight, group = Station)) %>%
 
