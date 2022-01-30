@@ -16,6 +16,8 @@ ntt2 <- function(x){
   if(hour>12){
     hour = hour-12
     ampm = "pm"
+  } else if(hour==12){
+    ampm = "pm"
   } else {
     ampm = "am"
   }
@@ -53,10 +55,6 @@ getPlot <- function(selectedDat, tideDat){
     stat_peaks(colour = "black") +
     stat_valleys(colour = "black") +
     geom_line(data = tideDat, alpha = 0.1) +
-    # scale_x_time(
-    #     name = "Time",
-    #     breaks = scales::breaks_width("3 hour"),
-    #     labels = scales::date_format("%I:%M %p"))+
     scale_x_time(
       name = "Time",
       breaks=hours(seq(0,24,3)),
