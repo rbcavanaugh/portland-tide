@@ -13,7 +13,6 @@ library(lubridate)
 library(ggplot2)
 library(rtide)
 library(dplyr)
-library(plotly)
 library(ggpmisc)
 library(stringr)
 library(httr)
@@ -21,9 +20,8 @@ library(glue)
 library(jsonlite)
 library(tidyr)
 
-
-source("key.R")
-source("functions.R")
+source("functions/key.R")
+source("functions/functions.R")
 
 tideData = getTideData()
 dailyWeather = getWeatherData()
@@ -58,14 +56,22 @@ ui = f7Page(
             f7Card(
                 title = NULL,
                 uiOutput("text")
-            )
+            )#,
+            # f7Card(
+            #     f7Row(
+            #         f7Col(uiOutput("hourPicker")),
+            #         f7Col(uiOutput("minutePicker")),
+            #         f7Col(uiOutput("ampmPicker"))
+            #     )
+            # )
         )
 ),
 server = function(input, output) {
     data <- reactiveValues(
         selectedDate = as.Date(Sys.time(), tz = "EST5EDT"),
         todayActive = T,
-        tomorrowActive = F
+        tomorrowActive = F,
+        hours = seq(hour(as_datetime(Sys.time(), tz = "EST5EDT")), 24, 1)
     )
     
     observeEvent(input$today,{
@@ -106,6 +112,35 @@ server = function(input, output) {
         getPlot(selectedData, tideData)
         
     })
+    
+    ## Card with pickers:
+    
+    output$hourPicker <- renderUI({
+        f7Picker(
+            inputId = "selectHour",
+            label = "Hour",
+            choices = data$hours
+        )
+    })
+    
+    output$minutePicker <- renderUI({
+        f7Picker(
+            inputId = "selectMinute",
+            label = "Minute",
+            choices = seq(0,50,10),
+            value = 0
+        )
+    })
+    
+    output$ampmPicker <- renderUI({
+        f7Picker(
+            inputId = "selectAMPM",
+            label = "am/pm",
+            choices = c("AM", "PM"),
+            value = ifelse(min(data$hours<12), "AM", "PM")
+        )
+    })
+    
 }
 )
 

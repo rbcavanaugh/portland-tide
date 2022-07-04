@@ -1,7 +1,7 @@
 
 getTideData <- function(){
  rtide::tide_height(
-  "Casco Bay",
+  "Casco Bay", #
   from = Sys.Date()-15, to = Sys.Date()+15,
   minutes = 10L, tz = "EST5EDT"
 ) %>%
@@ -51,10 +51,10 @@ getWeatherData <- function(){
 
 getPlot <- function(selectedDat, tideDat){
   p =  ggplot(data = selectedDat, aes(x = time, y = TideHeight)) +
-    geom_line() +
+    geom_line(data = tideDat, alpha = 0.1) +
     stat_peaks(colour = "black") +
     stat_valleys(colour = "black") +
-    geom_line(data = tideDat, alpha = 0.1) +
+    geom_line() +
     scale_x_time(
       name = "Time",
       breaks=hours(seq(0,24,3)),

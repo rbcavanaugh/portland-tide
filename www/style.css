@@ -13,3 +13,7 @@
 .toast {
   display:none!important;
 }
+
+.item-content {
+  border:5px; black
+}

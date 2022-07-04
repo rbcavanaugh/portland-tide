@@ -1,0 +1,197 @@
+---
+title: "Can you get a shiny server on DO without leaving RStudio?"
+author: "Rob Cavanaugh"
+date: "2/12/2022"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval = FALSE)
+```
+
+When I first created a shiny server, I followed the instructions laid out 
+here [link] and here [link] which was a good learning exercise, required a lot of
+trial and error and was pretty time consuming. I suspect that the process is
+also a bit too much for many R users. My wife recently started working for DO and 
+mentioned that there is a new add-on that will make installing a shiny app
+a pretty quick process. I also saw some recent updates to the 
+analogsea package [here] and started getting curious - is it now possible to 
+create a shiny server on a DO droplet without leaving Rstudio (or at least without
+using terminal). Unfortunately, I couldn't find any guides or posts on how
+to do this, so I documented my process...
+
+Note that I figured this out mostly from trial and error...there isn't a whole lot
+of documentation for doing this. Aspects of this could be wrong. Also DO is not expensive,
+and you start with lots of credits, but its not free like the free plan of shinyapps.io. 
+
+As a spoiler, its not possible to do everything by the command line. But these
+steps should save a substantial amount of time relative to existing guides that 
+have been helpful to me: 
+
+- https://www.marinedatascience.co/blog/2019/04/28/run-shiny-server-on-your-own-digitalocean-droplet-part-1/#step-4-add-more-security-by-changing-the-default-port-optional
+
+- https://deanattali.com/2015/05/09/setup-rstudio-shiny-server-digital-ocean/
+
+
+
+```{r, eval = T, warning = F, message = F}
+# packages
+library(here)
+library(tidyverse)
+library(analogsea)
+```
+
+1. Create a [Digital Ocean](https://m.do.co/c/ad9660bd69ac) account. (Note, this is my referral link...)
+
+2. SSH link computer to DO: https://docs.digitalocean.com/products/droplets/how-to/add-ssh-keys/
+Unfortunately, I already had to leave Rstudio. but you can connect your ssh key to DO once you create it by using `analogsea::key_create("my_ssh_key", readLines("~/.ssh/id_rsa.pub"))` where `"my_ssh_key"` is whatever you'd like to name your ssh key. 
+
+3. Set an API-key for analogsea. You can create the key here: https://cloud.digitalocean.com/account/api/
+
+```{r}
+Sys.setenv(DO_PAT = "KEY_GOES_HERE")
+```
+
+4. I already had a droplet so I wanted to check that I could see it. If you don't 
+have a droplet yet...this will probably return NULL or an error. 
+
+```{r, eval = T}
+droplets()
+```
+
+5. Create a droplet (virtual computer). This required the most trial and error
+on my part. I tried using `docklet_create()` and then `docklet_shinyserver()`
+which successfully created a containerized virual machine with shiny-server
+pre-installed. However, installing packages and otherwise working within the
+container is a little over my paygrade and I ran into too many errors using
+the analogsea package. Similar issues with `docklet_rstudio()` so I abandoned
+that tack. 
+
+Then I tried just creating a regular droplet, however, this required then going
+through the same steps I did last time I manually set up a shiny server. Reading
+the documentation for `droplet_create` revealed this tidbit: 
+
+> image: (character/numeric) The image ID of a public or private image, or the unique slug identifier for a public image. This image will be the base image for your droplet. See images() for a complete list. Use rstudio-20-04 for a DigitalOcean Marketplace image with R and Tidyverse readily available. Default: ubuntu-18-04-x64
+
+This is what I really wanted, the `rstudio-20-04` image refers to [this](https://marketplace.digitalocean.com/apps/rstudio) specific add-on which
+includes *almost* everything I wanted to do pre-configured. I gave the new droplet
+a name `"shinyDO"` but this could be anything. 
+
+```{r}
+droplet_create(name = "shinyDO", image = "rstudio-20-04")
+```
+
+After some messages in the console, we can check that the droplet was created
+successfully:
+
+```{r}
+droplets()
+```
+
+Note: When you create a droplet using this function, you can save its information
+ by running, for example, `d <- droplet_create(...)` but I liked rather being
+ explicit about creating this object. 
+
+```{r}
+d <- droplets()$shinyDO
+```
+
+6. Check that rstudio server and shiny server are working:
+
+- Go to the droplet `$shinyDO` IP which in this case is 137.184.113.199:8787 to see 
+the rstudio instance 
+- 137.184.113.199:3838 to see the shiny server example page.
+
+7. There are some extra steps that are recommended on the [add-on page](https://marketplace.digitalocean.com/apps/rstudio)
+
+- Change the password to rstudio server. I wasn't able to log in with 
+the supposed defaults rstudio/rstudio, so I skipped this step and came back to
+it. 
+- Create a separate admin account
+
+```{r}
+# create the new user and password. 
+d %>% ubuntu_create_user(user = "rob", password = "password1234")
+
+# give this user admin rights
+d %>% droplet_ssh("usermod -aG sudo rob")
+
+# delete the rstudio user
+# this command failed, saying the user
+# rstudio does not exist. 
+# now I understand why the initial logging in didn't work...
+# But is there some default user that I need to change
+# the password for?
+
+# d %>% droplet_ssh("deluser rstudio")
+```
+
+Note here the use of the function `droplet_ssh()` which executes command line code
+in the app as the current user (usually root). This could be done also by running
+`ssh root@IPaddress` in terminal or using the DO command prompt as referenced
+in the above page. I'm using `droplet_ssh()` here because the goal was to 
+stay in rstudio as much as possible. But some things may not work if
+they require additional input. For these, its better to use the other options.
+
+7. Install extra r packages
+
+- I need these for the example app I'm going to upload.
+
+```{r}
+d %>% install_r_package(c("glue", "shinyMobile", "rtide", "jsonlite", "lubridate", "httr", "ggpmisc"))
+```
+
+8. Upload a shiny app to the correct location. 
+
+According to the shiny server documentation, shiny apps are served off of the folder
+`/srv/shiny-server`. Droplet upload appears to upload all files within a folder
+so I added the name of the folder I wanted to upload files under to `shiny-server/`. 
+This seemed to work fine. Note that the name you give this folder will be the extension
+of where you find the app. So now, IPaddress:3838/portland-tide is where the app
+can be accessed. 
+
+```{r}
+d %>% droplet_upload(here::here(), "/srv/shiny-server/portland-tide")
+```
+
+Other useful commands, using the `droplet_ssh()` command.
+
+Just in case, how to remove an app
+
+```{r}
+d %>% droplet_ssh("sudo rm -rf /srv/shiny-server/portland-tide")
+```
+
+Or check the app log files
+
+```{r}
+d %>% droplet_ssh("tail -f -n100 /var/log/shiny-server.log")
+```
+
+Note that there are other commands that might be included in {analogsea} so that
+you don't need to use `droplet_ssh()`.
+
+# Domain stuff
+
+1. Buy a domain
+2. Configure it to digital ocean
+3. test that you can go to your domain name (domain.com) and see the
+nginx default page.
+
+
+Securing your website:
+The following steps you will need to do in terminal via ssh or the DO terminal.
+
+https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-20-04
+
+Then, in the terminal, add your domain to the server name line. you can edit it with
+`sudo nano /etc/nginx/sites-available/default`.
+
+Change `server_name _;` to `server_name domain.com;`
+
+Closer the file. then run `sudo service nginx restart`
+
+
+
