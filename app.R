@@ -19,6 +19,7 @@ library(httr)
 library(glue)
 library(jsonlite)
 library(tidyr)
+library(purrr)
 
 source("functions/key.R")
 source("functions/functions.R")
@@ -101,7 +102,9 @@ server = function(input, output) {
     })
     
     output$text <- renderUI({
-        getTextSummary(dailyWeather = dailyWeather, data = data)
+        div(
+            getTextSummary(dailyWeather = dailyWeather, data = data)
+        )
     })
     
     output$tidePlot <- renderPlot({
@@ -115,31 +118,31 @@ server = function(input, output) {
     
     ## Card with pickers:
     
-    output$hourPicker <- renderUI({
-        f7Picker(
-            inputId = "selectHour",
-            label = "Hour",
-            choices = data$hours
-        )
-    })
-    
-    output$minutePicker <- renderUI({
-        f7Picker(
-            inputId = "selectMinute",
-            label = "Minute",
-            choices = seq(0,50,10),
-            value = 0
-        )
-    })
-    
-    output$ampmPicker <- renderUI({
-        f7Picker(
-            inputId = "selectAMPM",
-            label = "am/pm",
-            choices = c("AM", "PM"),
-            value = ifelse(min(data$hours<12), "AM", "PM")
-        )
-    })
+    # output$hourPicker <- renderUI({
+    #     f7Picker(
+    #         inputId = "selectHour",
+    #         label = "Hour",
+    #         choices = data$hours
+    #     )
+    # })
+    # 
+    # output$minutePicker <- renderUI({
+    #     f7Picker(
+    #         inputId = "selectMinute",
+    #         label = "Minute",
+    #         choices = seq(0,50,10),
+    #         value = 0
+    #     )
+    # })
+    # 
+    # output$ampmPicker <- renderUI({
+    #     f7Picker(
+    #         inputId = "selectAMPM",
+    #         label = "am/pm",
+    #         choices = c("AM", "PM"),
+    #         value = ifelse(min(data$hours<12), "AM", "PM")
+    #     )
+    # })
     
 }
 )

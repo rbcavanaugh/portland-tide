@@ -5,10 +5,10 @@ account: rb-cavanaugh
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5489176
-bundleId: 6068961
+bundleId: 6677153
 url: https://rb-cavanaugh.shinyapps.io/portland-tide/
-when: 1656965183.78207
-lastSyncTime: 1656965183.78208
+when: 1672186379.1154
+lastSyncTime: 1672186379.11542
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: vignettes/.gitignore|vignettes/.httr-oauth|vignettes/DO-vignette.Rmd
+ignoredFiles: vignettes/.gitignore|vignettes/DO-vignette.Rmd
